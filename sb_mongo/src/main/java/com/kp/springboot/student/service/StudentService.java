@@ -1,5 +1,7 @@
 package com.kp.springboot.student.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,17 +27,36 @@ public class StudentService {
 	@Value("${company.endpoint}")
 	String endpoint;
 	
+	@Value("${company.checkinstance.endpoint}")
+    String checkinstanceendpoint;
+	
+	public Student saveStudent(Student student) {
+		Student savedStudent=this.studentrepo.save(student);
+		return savedStudent;
+	}
+	
+	public Student findStudent(int id) {
+		Student student=this.studentrepo.findById(id).orElse(null);
+		return student;
+	}
+	
+	public void deleteStudent(int id) {
+		this.studentrepo.deleteById(id);
+	}
+	
+	public List<Student> findStudents(){
+		List<Student> students=this.studentrepo.findAll();
+		return students;
+	}
+	
 	public StudentData getStudentAndComany(String studentname) {
 		
 		Student student=studentrepo.findByName(studentname);
-		System.out.println("student:"+student);
 		if(student!=null )
 		{
 			if(student.getCompanyname()!=null)
 			{
-				System.out.println(student.getCompanyname());
 				Company company=companyData(student.getCompanyname());
-				//System.out.println("headoffice:"+company.getHeadoffice());
 				return new StudentData(student,company);
 			}
 			return new StudentData(student,null);
@@ -49,5 +70,12 @@ public class StudentService {
 		Company company=resttemplate.getForObject(fullurl, Company.class);
 		return company;
 	}
+	
+	public String getInstance() {
+		String fullurl=baseurl+checkinstanceendpoint;
+		String response=resttemplate.getForObject(fullurl, String.class);
+		return response;
+	}
+	
 
 }
