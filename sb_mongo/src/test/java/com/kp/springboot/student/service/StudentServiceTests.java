@@ -1,5 +1,6 @@
 package com.kp.springboot.student.service;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -32,6 +33,24 @@ public class StudentServiceTests {
 	   Mockito.doReturn(new Company("TCS","Mumbai")).when(studentservice).companyData(student.getCompanyname());
        StudentData studentdata=studentservice.getStudentAndComany(studentname);
 	   Assertions.assertNotNull(studentdata);
+	}
+	
+	@Test 
+	void testsaveStudent() 
+	{
+		Student student=new Student(1001,"Testuser","test university","test location","test company");
+		Mockito.when(this.studentrepo.save(student)).thenReturn(student);
+		Student savedstudent=studentservice.saveStudent(student);
+		Assertions.assertEquals(student, savedstudent);
+	}
+	
+	@Test
+	void testdeleteStudent() {
+		int id=105;
+		Mockito.doNothing().when(studentrepo).deleteById(id);
+		studentservice.deleteStudent(id);
+		Mockito.verify(studentrepo).deleteById(id);
+		
 	}
 	
 }

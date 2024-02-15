@@ -21,28 +21,37 @@ import com.kp.springboot.student.dto.StudentData;
 import com.kp.springboot.student.model.Student;
 import com.kp.springboot.student.service.StudentService;
 
+import jdk.nashorn.internal.runtime.logging.Logger;
+
 @RestController
 @RequestMapping("/student")
+
 public class StudentController {
-	
-    @Autowired
+
+	@Autowired
 	RestTemplate resttemplate;
-    
-    @Autowired
-    StudentService studentservice;
-    
-	
+
+	@Autowired
+	StudentService studentservice;
+
+
 	@PostMapping("/saveStudent")
 	public ResponseEntity<?> addStudent(@RequestBody Student student)
 	{
 		try{
-			Student savedStudent=studentservice.saveStudent(student);
-			if(null!=savedStudent)
+
+			if(null==studentservice.findStudent(student.getId())) 
 			{
-				return ResponseEntity.ok(savedStudent);
-			}	
-			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Record not Saved");
-		   }
+				Student savedStudent=studentservice.saveStudent(student);
+				if(null!=savedStudent)
+				{
+					return ResponseEntity.ok("Student saved Successfully.");
+				}	
+				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Record not Saved");
+			}
+			else
+				return ResponseEntity.status(HttpStatus.CONFLICT).body("Record with same id already exists");
+		}
 		catch(DataAccessException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to connect to DB");
 		}
@@ -51,7 +60,7 @@ public class StudentController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Record not Saved due to internal server error");
 		}
 	}
-	
+
 	@DeleteMapping("/deleteStudent/{id}")
 	public ResponseEntity<?> deleteStudent(@PathVariable int id)
 	{
@@ -60,11 +69,11 @@ public class StudentController {
 			if(null!=studentservice.findStudent(id))
 			{
 				studentservice.deleteStudent(id);
-			  return ResponseEntity.ok("Record deleted");
+				return ResponseEntity.ok("Record deleted");
 			}
 			else
-			 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No Record Found");
-			
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No Record Found");
+
 		}
 		catch(DataAccessException e)
 		{
@@ -75,7 +84,7 @@ public class StudentController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Record not deleted due to internal server error");
 		}
 	}
-	
+
 	@GetMapping("/getStudents")
 	public ResponseEntity<?> getStudents()
 	{
@@ -93,21 +102,21 @@ public class StudentController {
 		catch(Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
 		}
-		
+
 	}
-	
-	
+
+
 	@GetMapping("/getStudent/{id}")
 	public ResponseEntity<?> getStudent(@PathVariable int id)
 	{
 		try {
-		Student student=studentservice.findStudent(id);
-				
-		if(null!=student)
-		{
-			return ResponseEntity.ok(student);		
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Record Not Found");	
+			Student student=studentservice.findStudent(id);
+
+			if(null!=student)
+			{
+				return ResponseEntity.ok(student);	
+			}
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Record Not Found");	
 		}
 		catch(DataAccessException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to connect to DB");
@@ -116,19 +125,19 @@ public class StudentController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
 		}
 	}
-	
+
 	//fetching student data from student ms and company details from company ms
 	@GetMapping("/getStudentDetail/{studentname}")
 	public ResponseEntity<?> getStudentData(@PathVariable String studentname)
 	{
 		try
 		{
-		StudentData studentdata=studentservice.getStudentAndComany(studentname);
-		if(null!=studentdata)
-		{
-			return ResponseEntity.ok(studentdata);
-		}
-		return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Record Not Found");
+			StudentData studentdata=studentservice.getStudentAndComany(studentname);
+			if(null!=studentdata)
+			{
+				return ResponseEntity.ok(studentdata);
+			}
+			return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Record Not Found");
 		}
 		catch(DataAccessException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to connect to DB");
@@ -137,9 +146,9 @@ public class StudentController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error pls check internally called service too");
 		}
 	}
-	
-	//need to test
-	@PutMapping("/updateStudent/{id}")
+
+
+	@PutMapping("/updateStudent")
 	public ResponseEntity<?> updateStudent(@RequestBody Student student)
 	{
 		try 
@@ -148,12 +157,12 @@ public class StudentController {
 			{
 				Student updatedstudent=studentservice.saveStudent(student);
 				if(null!=updatedstudent)
-			    return ResponseEntity.ok(updatedstudent);
+					return ResponseEntity.ok(updatedstudent);
 				else
-				return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Record could not be updated");	
+					return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Record could not be updated");	
 			}
 			else
-			 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No Record Found to update");	
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("This record does not exists hence can't be updated");	
 		}
 		catch(DataAccessException e)
 		{
@@ -164,7 +173,7 @@ public class StudentController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Record not deleted due to internal server error");
 		}
 	}
-	
+
 	//api for checking different instances of company service
 	@GetMapping("/checkcompanyinstance")
 	public String getInstance()
